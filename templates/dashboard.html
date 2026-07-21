@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Dashboard - Secure System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: conic-gradient(var(--color-success) {% if score %}{{ score }}{% else %}0{% endif %}%, var(--color-bg-dark) 0);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem auto;
+            position: relative;
+        }
+        .score-inner {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: var(--color-bg-card);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        .score-inner span {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--color-success);
+        }
+        .score-inner small {
+            font-size: 0.75rem;
+            color: var(--color-text-muted);
+        }
+        .log-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+        }
+        .log-table th, .log-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--color-border);
+        }
+        .log-table th {
+            color: var(--color-text-muted);
+            font-weight: 500;
+        }
+        .log-table tbody tr:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+        .overview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+        .overview-item {
+            background: var(--color-bg-dark);
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--color-border);
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="nav-brand">
+            <i class="fa-solid fa-shield-halved"></i>
+            <span>Secure System</span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="/">Home</a></li>
+            <li><a href="/about">About</a></li>
+            <li><a href="/dashboard" class="active">Dashboard</a></li>
+            <li><a href="/logout" class="btn-nav">Logout</a></li>
+        </ul>
+    </nav>
+
+    <main class="container">
+        <div class="flash-messages" style="max-width: 1200px;">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash {{ category }}">
+                            {% if category == 'success' %}<i class="fa-solid fa-circle-check"></i>
+                            {% elif category == 'error' %}<i class="fa-solid fa-circle-exclamation"></i>
+                            {% else %}<i class="fa-solid fa-circle-info"></i>{% endif %}
+                            <span>{{ message }}</span>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            
+            {% if session_info.new_device %}
+            <div class="flash warning">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <span><strong>New Device Detected:</strong> You logged in from an unrecognized device or browser.</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <div style="width: 100%; text-align: left; margin-bottom: 2rem;">
+            <h1>Enterprise Dashboard</h1>
+            <p>Welcome, <strong>{{ session['username'] }}</strong>. Manage your enterprise security posture below.</p>
+        </div>
+
+        <div class="dashboard-grid">
+            <!-- Security Score -->
+            <div class="dash-card" style="text-align: center;">
+                <h3><i class="fa-solid fa-chart-pie" style="color: var(--color-primary);"></i> Security Score</h3>
+                <div class="score-circle">
+                    <div class="score-inner">
+                        <span>{{ score }}</span>
+                        <small>/ 100</small>
+                    </div>
+                </div>
+                
+                <div style="text-align: left; margin-top: 1.5rem;">
+                    <h4 style="margin-bottom: 0.5rem;">Recommendations</h4>
+                    <ul class="feature-list" style="margin-top:0;">
+                        <li><i class="fa-solid fa-check" style="color: var(--color-success);"></i> Passwords hashed (bcrypt)</li>
+                        <li><i class="fa-solid fa-check" style="color: var(--color-success);"></i> SQL Injection protection active</li>
+                        {% if twofa_enabled %}
+                            <li><i class="fa-solid fa-check" style="color: var(--color-success);"></i> Multi-Factor Authentication enabled</li>
+                        {% else %}
+                            <li><i class="fa-solid fa-triangle-exclamation" style="color: var(--color-warning);"></i> Enable Multi-Factor Authentication</li>
+                        {% endif %}
+                        
+                        {% if session_info.new_device %}
+                            <li><i class="fa-solid fa-triangle-exclamation" style="color: var(--color-warning);"></i> Verify this device as trusted</li>
+                        {% else %}
+                            <li><i class="fa-solid fa-check" style="color: var(--color-success);"></i> Device verified as trusted</li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Identity & MFA -->
+            <div class="dash-card">
+                <h3><i class="fa-solid fa-user-shield" style="color: var(--color-secondary);"></i> Identity Profile</h3>
+                <p><strong>Username:</strong> {{ session['username'] }}</p>
+                <p><strong>Email:</strong> {{ session['email'] }}</p>
+                <hr style="border-color: var(--color-border); margin: 1rem 0;">
+                
+                <h4>Multi-Factor Authentication (MFA)</h4>
+                <p style="margin-top: 0.5rem;">
+                    Status: 
+                    {% if twofa_enabled %}
+                        <span class="badge badge-success"><i class="fa-solid fa-lock"></i> Enabled</span>
+                    {% else %}
+                        <span class="badge badge-error"><i class="fa-solid fa-lock-open"></i> Disabled</span>
+                    {% endif %}
+                </p>
+                
+                <div style="margin-top: 1rem;">
+                    {% if twofa_enabled %}
+                    <form action="/disable-2fa" method="POST" onsubmit="return confirm('Are you sure you want to disable Multi-Factor Authentication?');">
+                        <button type="submit" class="btn btn-secondary" style="width: auto;"><i class="fa-solid fa-shield-slash"></i> Disable 2FA</button>
+                    </form>
+                    {% else %}
+                    <a href="/setup-2fa" class="btn btn-primary" style="width: auto;"><i class="fa-solid fa-qrcode"></i> Setup MFA</a>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Session Info & Overview -->
+            <div class="dash-card" style="grid-column: 1 / -1;">
+                <h3><i class="fa-solid fa-server" style="color: var(--color-text-muted);"></i> Security Overview</h3>
+                <div class="overview-grid">
+                    <div class="overview-item">
+                        <i class="fa-solid fa-hash" style="font-size: 1.5rem; color: var(--color-primary); margin-bottom: 0.5rem;"></i>
+                        <div style="font-size: 0.875rem; font-weight: bold;">Password Hashing</div>
+                        <span class="badge badge-success" style="margin-top:0.5rem;">Protected</span>
+                    </div>
+                    <div class="overview-item">
+                        <i class="fa-solid fa-database" style="font-size: 1.5rem; color: var(--color-primary); margin-bottom: 0.5rem;"></i>
+                        <div style="font-size: 0.875rem; font-weight: bold;">SQL Injection</div>
+                        <span class="badge badge-success" style="margin-top:0.5rem;">Protected</span>
+                    </div>
+                    <div class="overview-item">
+                        <i class="fa-solid fa-clock-rotate-left" style="font-size: 1.5rem; color: var(--color-primary); margin-bottom: 0.5rem;"></i>
+                        <div style="font-size: 0.875rem; font-weight: bold;">Session Protect</div>
+                        <span class="badge badge-success" style="margin-top:0.5rem;">Protected</span>
+                    </div>
+                    <div class="overview-item">
+                        <i class="fa-solid fa-mobile-screen" style="font-size: 1.5rem; color: var(--color-primary); margin-bottom: 0.5rem;"></i>
+                        <div style="font-size: 0.875rem; font-weight: bold;">MFA Status</div>
+                        {% if twofa_enabled %}
+                            <span class="badge badge-success" style="margin-top:0.5rem;">Protected</span>
+                        {% else %}
+                            <span class="badge badge-error" style="margin-top:0.5rem;">Disabled</span>
+                        {% endif %}
+                    </div>
+                    <div class="overview-item">
+                        <i class="fa-solid fa-laptop-code" style="font-size: 1.5rem; color: var(--color-primary); margin-bottom: 0.5rem;"></i>
+                        <div style="font-size: 0.875rem; font-weight: bold;">Device Trust</div>
+                        {% if not session_info.new_device %}
+                            <span class="badge badge-success" style="margin-top:0.5rem;">Trusted</span>
+                        {% else %}
+                            <span class="badge badge-error" style="margin-top:0.5rem;">Warning</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <h4 style="margin-top: 2rem; margin-bottom: 1rem;">Current Session Details</h4>
+                <ul class="feature-list" style="margin-top:0; font-size: 0.875rem;">
+                    <li><strong>IP Address:</strong> {{ session_info.ip }}</li>
+                    <li><strong>Browser:</strong> {{ session_info.browser }}</li>
+                    <li><strong>OS:</strong> {{ session_info.os }}</li>
+                    <li><strong>Status:</strong> <span class="badge badge-success">Active</span></li>
+                </ul>
+            </div>
+
+            <!-- Login Audit Logs -->
+            <div class="dash-card" style="grid-column: 1 / -1; overflow-x: auto;">
+                <h3><i class="fa-solid fa-list-check" style="color: var(--color-text-muted);"></i> Login Audit Logs</h3>
+                <table class="log-table">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>IP Address</th>
+                            <th>Browser</th>
+                            <th>OS</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in logs %}
+                        <tr>
+                            <td>{{ log.login_time }}</td>
+                            <td>{{ log.ip_address }}</td>
+                            <td>{{ log.browser }}</td>
+                            <td>{{ log.operating_system }}</td>
+                            <td>
+                                {% if log.login_status == 'Success' %}
+                                <span class="badge badge-success">Success</span>
+                                {% else %}
+                                <span class="badge badge-error">Failed</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" style="text-align: center; color: var(--color-text-muted);">No login logs available.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

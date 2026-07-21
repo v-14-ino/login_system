@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Identity - Enterprise Auth Portal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="nav-brand">
+            <i class="fa-solid fa-shield-halved"></i>
+            <span>Secure System</span>
+        </a>
+    </nav>
+
+    <main class="auth-split">
+        <div class="auth-hero">
+            <i class="fa-solid fa-shield-halved hero-icon" style="color: var(--color-secondary);"></i>
+            <h2>Step-Up Authentication</h2>
+            <p style="max-width: 400px; margin: 0 auto;">
+                Your account is protected by MFA. Please verify your identity using your linked authenticator application.
+            </p>
+        </div>
+        
+        <div class="auth-form-container">
+            <div class="auth-card" style="text-align: center;">
+                <div class="auth-card-header">
+                    <h2><i class="fa-solid fa-lock" style="margin-right: 10px;"></i> Identity Verification</h2>
+                    <p>Enter the 6-digit code from your app</p>
+                </div>
+                
+                <div class="flash-messages">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="flash {{ category }}">
+                                    {% if category == 'success' %}<i class="fa-solid fa-circle-check"></i>
+                                    {% elif category == 'error' %}<i class="fa-solid fa-circle-exclamation"></i>
+                                    {% else %}<i class="fa-solid fa-circle-info"></i>{% endif %}
+                                    <span>{{ message }}</span>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                </div>
+
+                <form action="/verify-2fa" method="POST">
+                    <div class="form-group" style="text-align: center;">
+                        <input type="text" id="totp_code" name="totp_code" class="form-control totp-input" required maxlength="6" pattern="\d{6}" placeholder="000000">
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button type="submit" class="btn btn-primary">Authenticate <i class="fa-solid fa-arrow-right-to-bracket"></i></button>
+                        <a href="/login" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

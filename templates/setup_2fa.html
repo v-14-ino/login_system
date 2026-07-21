@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setup MFA - Enterprise Auth Portal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="nav-brand">
+            <i class="fa-solid fa-shield-halved"></i>
+            <span>Secure System</span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="/">Home</a></li>
+            <li><a href="/about">About</a></li>
+            <li><a href="/dashboard">Dashboard</a></li>
+            <li><a href="/logout" class="btn-nav">Logout</a></li>
+        </ul>
+    </nav>
+
+    <main class="container">
+        <div class="standard-card" style="text-align: center;">
+            <h2 style="margin-bottom: 0.5rem;"><i class="fa-solid fa-qrcode" style="color: var(--color-primary);"></i> Multi-Factor Authentication</h2>
+            <p style="margin-bottom: 2rem;">Secure your account by linking an authenticator app.</p>
+            
+            <div class="flash-messages">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="flash {{ category }}">
+                                {% if category == 'success' %}<i class="fa-solid fa-circle-check"></i>
+                                {% elif category == 'error' %}<i class="fa-solid fa-circle-exclamation"></i>
+                                {% else %}<i class="fa-solid fa-circle-info"></i>{% endif %}
+                                <span>{{ message }}</span>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+            </div>
+
+            <div style="background: var(--color-bg-dark); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--color-border); text-align: left; margin-bottom: 2rem;">
+                <h4 style="margin-bottom: 1rem;">Setup Instructions</h4>
+                <ol style="color: var(--color-text-muted); padding-left: 1.5rem; line-height: 1.8;">
+                    <li>Download Google Authenticator, Authy, or Microsoft Authenticator.</li>
+                    <li>Scan the cryptographic QR code generated below.</li>
+                    <li>Enter the 6-digit TOTP code provided by the app to verify setup.</li>
+                </ol>
+            </div>
+
+            <div class="qr-container">
+                <img src="data:image/png;base64,{{ qr_b64 }}" alt="MFA QR Code">
+            </div>
+
+            <form action="/setup-2fa" method="POST" style="max-width: 300px; margin: 1.5rem auto 0 auto;">
+                <div class="form-group" style="text-align: center;">
+                    <label for="totp_code">Verification Code</label>
+                    <input type="text" id="totp_code" name="totp_code" class="form-control totp-input" required maxlength="6" pattern="\d{6}" placeholder="000000">
+                </div>
+                
+                <div class="action-buttons">
+                    <button type="submit" class="btn btn-primary">Verify & Enable <i class="fa-solid fa-shield-check"></i></button>
+                    <a href="/dashboard" class="btn btn-secondary">Cancel Setup</a>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

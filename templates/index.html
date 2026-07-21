@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Auth Portal - Secure Login System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="nav-brand">
+            <i class="fa-solid fa-shield-halved"></i>
+            <span>Secure System</span>
+        </a>
+        <ul class="nav-links">
+            {% if session.get('logged_in') %}
+            <li><a href="/" {% if request.path == '/' %}class="active"{% endif %}>Home</a></li>
+            <li><a href="/about" {% if request.path == '/about' %}class="active"{% endif %}>About</a></li>
+            <li><a href="/dashboard" {% if request.path == '/dashboard' %}class="active"{% endif %}>Dashboard</a></li>
+            <li><a href="/logout" class="btn-nav">Logout</a></li>
+            {% else %}
+            <li><a href="/" {% if request.path == '/' %}class="active"{% endif %}>Home</a></li>
+            <li><a href="/about" {% if request.path == '/about' %}class="active"{% endif %}>About</a></li>
+            <li><a href="/login" class="btn-nav">Login</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+
+    <main class="auth-split">
+        <div class="auth-hero">
+            <i class="fa-solid fa-fingerprint hero-icon"></i>
+            <h1>Zero-Trust Architecture</h1>
+            <p style="max-width: 400px; margin: 0 auto;">
+                Experience seamless, enterprise-grade authentication backed by robust cryptography, MFA enforcement, and rigorous session security protocols.
+            </p>
+        </div>
+        
+        <div class="auth-form-container">
+            <div class="auth-card">
+                <div class="auth-card-header">
+                    <h2>Welcome to the Portal</h2>
+                    <p>Secure Login System Platform</p>
+                </div>
+                
+                <div class="action-buttons">
+                    <a href="/login" class="btn btn-primary"><i class="fa-solid fa-right-to-bracket"></i> Enterprise Login</a>
+                    <a href="/register" class="btn btn-secondary"><i class="fa-solid fa-user-plus"></i> Create Account</a>
+                </div>
+                
+                <div class="auth-footer" style="margin-top: 3rem;">
+                    &copy; 2026 Secure Login System. <br> Protected by advanced encryption.
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About - Enterprise Auth Portal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="nav-brand">
+            <i class="fa-solid fa-shield-halved"></i>
+            <span>Secure System</span>
+        </a>
+        <ul class="nav-links">
+            {% if session.get('logged_in') %}
+            <li><a href="/" {% if request.path == '/' %}class="active"{% endif %}>Home</a></li>
+            <li><a href="/about" class="active">About</a></li>
+            <li><a href="/dashboard">Dashboard</a></li>
+            <li><a href="/logout" class="btn-nav">Logout</a></li>
+            {% else %}
+            <li><a href="/">Home</a></li>
+            <li><a href="/about" class="active">About</a></li>
+            <li><a href="/login" class="btn-nav">Login</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+
+    <main class="container">
+        <div class="standard-card">
+            <h2 style="border-bottom: 1px solid var(--color-border); padding-bottom: 1rem; margin-bottom: 1.5rem;">
+                <i class="fa-solid fa-circle-info"></i> About Secure System
+            </h2>
+            <p>
+                The Secure Login System is a fully-featured, enterprise-grade authentication platform designed to provide rigorous access control and robust identity verification.
+            </p>
+            
+            <h3 style="margin-top: 2rem;">Platform Architecture</h3>
+            <ul class="feature-list">
+                <li><i class="fa-solid fa-check"></i> Parameterized SQL execution to prevent injection attacks</li>
+                <li><i class="fa-solid fa-check"></i> Strict input validation and sanitation</li>
+                <li><i class="fa-solid fa-check"></i> Bcrypt adaptive password hashing</li>
+                <li><i class="fa-solid fa-check"></i> Multi-Factor Authentication via TOTP</li>
+                <li><i class="fa-solid fa-check"></i> Secure, stateless session management</li>
+            </ul>
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

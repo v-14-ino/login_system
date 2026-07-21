@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Enterprise Auth Portal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/" class="nav-brand">
+            <i class="fa-solid fa-shield-halved"></i>
+            <span>Secure System</span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="/">Home</a></li>
+            <li><a href="/about">About</a></li>
+            <li><a href="/register" class="btn-nav">Register</a></li>
+        </ul>
+    </nav>
+
+    <main class="auth-split">
+        <div class="auth-hero">
+            <i class="fa-solid fa-lock hero-icon"></i>
+            <h2>Enterprise Authentication</h2>
+            <p style="max-width: 400px; margin: 0 auto;">
+                Secure access gateway utilizing industry-standard bcrypt password hashing and optional Time-Based One-Time Passwords (TOTP).
+            </p>
+        </div>
+        
+        <div class="auth-form-container">
+            <div class="auth-card">
+                <div class="auth-card-header">
+                    <h2>Sign In</h2>
+                    <p>Access your secure portal</p>
+                </div>
+                
+                <div class="flash-messages">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="flash {{ category }}">
+                                    {% if category == 'success' %}<i class="fa-solid fa-circle-check"></i>
+                                    {% elif category == 'error' %}<i class="fa-solid fa-circle-exclamation"></i>
+                                    {% else %}<i class="fa-solid fa-circle-info"></i>{% endif %}
+                                    <span>{{ message }}</span>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                </div>
+
+                <form action="/login" method="POST">
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <div class="input-icon-wrapper">
+                            <input type="email" id="email" name="email" class="form-control" placeholder="john@example.com" required>
+                            <i class="fa-solid fa-envelope icon-prefix"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <div class="input-icon-wrapper">
+                            <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" required>
+                            <i class="fa-solid fa-lock icon-prefix"></i>
+                            <i class="fa-solid fa-eye icon-suffix toggle-password" data-target="password" title="Toggle Visibility"></i>
+                        </div>
+                    </div>
+                    
+                    <input type="hidden" id="fingerprint" name="fingerprint" value="">
+                    
+                    <div class="action-buttons">
+                        <button type="submit" class="btn btn-primary">Login <i class="fa-solid fa-arrow-right"></i></button>
+                    </div>
+                </form>
+                
+                <div class="auth-footer">
+                    Don't have an account? <a href="/register">Create Account</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script>
+        // SHA-256 implementation and fingerprint generation
+        async function generateFingerprint() {
+            const browser = navigator.userAgent;
+            const language = navigator.language;
+            const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            const screenRes = `${screen.width}x${screen.height}`;
+            const platform = navigator.platform;
+            
+            const rawData = `${browser}|${language}|${timezone}|${screenRes}|${platform}`;
+            
+            const msgBuffer = new TextEncoder().encode(rawData);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            
+            return hashHex;
+        }
+
+        document.querySelector('form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const fpInput = document.getElementById('fingerprint');
+            fpInput.value = await generateFingerprint();
+            this.submit();
+        });
+    </script>
+</body>
+</html>
